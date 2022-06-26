@@ -2,7 +2,7 @@
 
 [![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/mkromkamp/efcore-change-events/blob/master/LICENSEs)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/mkromkamp/efcore-change-events?sort=semver)
-![GitHub branch checks state](https://img.shields.io/github/checks-status/mkromkamp/efcore-change-events/main)
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/mkromkamp/efcore-change-events/.NET/main)
 ![GitHub issues](https://img.shields.io/github/issues/mkromkamp/efcore-change-events)
 
 Automatic change events for entity framework core.
