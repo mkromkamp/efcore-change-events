@@ -2,8 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>10.0</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PackageProjectUrl>https://github.com/mkromkamp/efcore-change-events</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/mkromkamp/efcore-change-events</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Authors>https://github.com/mkromkamp</Authors>
+    <Title>EntityFrameworkCore.ChangeEvents</Title>
+    <Description>Automated change events for Entity Framework Core</Description>
+    <PackageTags>EntityFramework,EntityFrameworkCore,Events,Event Driven</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
