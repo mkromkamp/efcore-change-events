@@ -11,10 +11,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      # - name: Setup dotnet
-      #   uses: actions/setup-dotnet@v1
-      #   with:
-      #     dotnet-version: 3.1.200
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 6.0.x
 
       # Publish
       - name: publish on version change
@@ -23,13 +23,13 @@ jobs:
         with:
           # Filepath of the project to be packaged, relative to root of repository
           PROJECT_FILE_PATH: src/EntityFrameworkCore.ChangeEvents/EntityFrameworkCore.ChangeEvents.csproj
-          
+
           # Configuration to build and package
           BUILD_CONFIGURATION: Release
-          
+
           # Platform target to compile (default is empty/AnyCPU)
-          # BUILD_PLATFORM: x64          
-          
+          # BUILD_PLATFORM: x64
+
           # NuGet package id, used for version detection & defaults to project name
           PACKAGE_NAME: EntityFrameworkCore.ChangeEvents
           
@@ -38,7 +38,7 @@ jobs:
 
           # Regex pattern to extract version info in a capturing group
           # VERSION_REGEX: ^\s*<Version>(.*)<\/Version>\s*$
-          
+
           # Useful with external providers like Nerdbank.GitVersioning, ignores VERSION_FILE_PATH & VERSION_REGEX
           VERSION_STATIC: ${{ github.event.release.tag_name }}
 
@@ -46,7 +46,7 @@ jobs:
           TAG_COMMIT: false
 
           # Format of the git tag, [*] gets replaced with actual version
-          TAG_FORMAT: v*
+          # TAG_FORMAT: v*
 
           # API key to authenticate with NuGet server
           NUGET_KEY: ${{secrets.NUGET_PUBLISH_KEY}}
@@ -55,4 +55,4 @@ jobs:
           NUGET_SOURCE: https://api.nuget.org
 
           # Flag to toggle pushing symbols along with nuget package to the server, disabled by default
-          INCLUDE_SYMBOLS: false
+          INCLUDE_SYMBOLS: true
