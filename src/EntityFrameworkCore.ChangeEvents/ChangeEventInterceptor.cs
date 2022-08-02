@@ -131,7 +131,7 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
         return new()
         {
             ChangeType = entry.State.ToString(),
-            SourceTableName = entry.Metadata.DisplayName(),
+            SourceTableName = entry.TableName(),
             SourceRowId = entry.PrimaryKey(),
             OldData = null,
             NewData = entry.GetNewState(_options.JsonSerializerOptions),
@@ -148,7 +148,7 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
         return new()
         {
             ChangeType = entry.State.ToString(),
-            SourceTableName = entry.Metadata.DisplayName(),
+            SourceTableName = entry.TableName(),
             SourceRowId = entry.PrimaryKey(),
             OldData = entry.GetOldState(_options.JsonSerializerOptions),
             NewData = entry.GetNewState(_options.JsonSerializerOptions),
@@ -165,7 +165,7 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
         return new()
         {
             ChangeType = entry.State.ToString(),
-            SourceTableName = entry.Metadata.DisplayName(),
+            SourceTableName = entry.TableName(),
             SourceRowId = entry.PrimaryKey(),
             OldData = entry.GetOldState(_options.JsonSerializerOptions),
             NewData = null,
