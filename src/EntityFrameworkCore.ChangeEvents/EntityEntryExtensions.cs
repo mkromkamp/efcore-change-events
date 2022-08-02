@@ -76,4 +76,14 @@ internal static class EntityEntryExtensions
 
         return string.Join(",", values);
     }
+
+    /// <summary>
+    /// Gets the name of the table (entity).
+    /// </summary>
+    /// <param name="entry"></param>
+    /// <returns></returns>
+    public static string TableName(this EntityEntry entry)
+    {
+        return entry.Metadata.ShortName();
+    }
 }
