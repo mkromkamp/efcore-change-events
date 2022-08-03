@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Text.Json;
 using Shouldly;
 using Xunit;
@@ -8,14 +7,14 @@ namespace EntityFrameworkCore.ChangeEvents.Tests;
 public class EntityEntryExtensionTests
 {
     private readonly TestContext _context;
-    private readonly JsonSerializerOptions _serializerOptions;
+    private readonly ChangeEventOptions _options;
 
     public EntityEntryExtensionTests()
     {
         _context = new TestContext(new());
         _context.Database.EnsureCreated();
 
-        _serializerOptions = new();
+        _options = new();
     }
     
     [Fact]
@@ -26,7 +25,7 @@ public class EntityEntryExtensionTests
         var entityEntry = _context.Entities.Add(entity);
 
         // When
-        var state = entityEntry.GetOldState(_serializerOptions);
+        var state = entityEntry.GetOldState(_options);
 
         // Then
         var deserializedEntity = JsonSerializer.Deserialize<TestEntity>(state);
@@ -40,13 +39,32 @@ public class EntityEntryExtensionTests
         // Given
         var entity = new TestEntity() { Name = "Test entity", IsActive = true };
         var entityEntry = _context.Entities.Add(entity);
-
+        
         // When
-        var state = entityEntry.GetOldState(_serializerOptions);
+        _options.OmitPrimaryKeys = true;
+        _options.OmitForeignKeys = true;
+        var state = entityEntry.GetOldState(_options);
 
         // Then
         var deserializedEntity = JsonSerializer.Deserialize<TestEntity>(state);
         deserializedEntity.Id.ShouldBeNull();
+    }
+    
+    [Fact]
+    public void GivenEntityEntry_WhenGettingOldState_ShouldSerializeKeys()
+    {
+        // Given
+        var entity = new TestEntity() { Name = "Test entity", IsActive = true };
+        var entityEntry = _context.Entities.Add(entity);
+        
+        // When
+        _options.OmitPrimaryKeys = false;
+        _options.OmitForeignKeys = false;
+        var state = entityEntry.GetOldState(_options);
+
+        // Then
+        var deserializedEntity = JsonSerializer.Deserialize<TestEntity>(state);
+        deserializedEntity.Id.ShouldNotBeNull();
     }
     
     [Fact]
@@ -57,14 +75,14 @@ public class EntityEntryExtensionTests
         var entityEntry = _context.Entities.Add(entity);
 
         // When
-        var state = entityEntry.GetNewState(_serializerOptions);
+        var state = entityEntry.GetNewState(_options);
 
         // Then
         var deserializedEntity = JsonSerializer.Deserialize<TestEntity>(state);
         deserializedEntity.Name.ShouldBe(entity.Name);
         deserializedEntity.IsActive.ShouldBe(entity.IsActive);
     }
-    
+
     [Fact]
     public void GivenEntityEntry_WhenGettingNewState_ShouldNotSerializeKeys()
     {
@@ -73,11 +91,30 @@ public class EntityEntryExtensionTests
         var entityEntry = _context.Entities.Add(entity);
 
         // When
-        var state = entityEntry.GetOldState(_serializerOptions);
+        _options.OmitPrimaryKeys = true;
+        _options.OmitForeignKeys = true;
+        var state = entityEntry.GetOldState(_options);
 
         // Then
         var deserializedEntity = JsonSerializer.Deserialize<TestEntity>(state);
         deserializedEntity.Id.ShouldBeNull();
+    }
+    
+    [Fact]
+    public void GivenEntityEntry_WhenGettingNewState_ShouldSerializeKeys()
+    {
+        // Given
+        var entity = new TestEntity() { Name = "Test entity", IsActive = true };
+        var entityEntry = _context.Entities.Add(entity);
+
+        // When
+        _options.OmitPrimaryKeys = false;
+        _options.OmitForeignKeys = false;
+        var state = entityEntry.GetOldState(_options);
+
+        // Then
+        var deserializedEntity = JsonSerializer.Deserialize<TestEntity>(state);
+        deserializedEntity.Id.ShouldNotBeNull();
     }
     
     [Fact]
