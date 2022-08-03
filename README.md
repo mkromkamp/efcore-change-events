@@ -56,7 +56,7 @@ public class SampleContext : DbContext
 }
 ```
 
-Customize JSON serializer
+#### Customize JSON serializer
 ```csharp
 protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 {
@@ -66,13 +66,26 @@ protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 }
 ```
 
-Customize Entity framework model
+#### Customize Entity framework model
 ```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     // Add change event model, create index on IsPublished
     modelBuilder.AddChangeEvents<ChangeEvent>(e => 
         e.HasIndex(x => x.IsPublished));
+}
+```
+
+#### Omit (foreign) keys from change events
+```csharp
+protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+{
+    // Omit primary and foreign keys from change events
+    optionsBuilder.UseChangeEvents(options => 
+    {
+        options.OmitPrimaryKeys = true;
+        options.OmitForeignKeys = true;
+    });
 }
 ```
 
