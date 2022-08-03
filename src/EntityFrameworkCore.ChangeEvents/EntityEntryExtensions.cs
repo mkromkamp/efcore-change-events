@@ -9,16 +9,17 @@ internal static class EntityEntryExtensions
     /// Get the new state.
     /// </summary>
     /// <param name="entry">The entry.</param>
-    /// <param name="serializerOptions">The <see cref="JsonSerializerOptions"/>.</param>
+    /// <param name="options">The <see cref="ChangeEventOptions"/>.</param>
     /// <returns>A string representing the new state in JSON format.</returns>
-    public static string GetNewState(this EntityEntry entry, JsonSerializerOptions serializerOptions)
+    public static string GetNewState(this EntityEntry entry, ChangeEventOptions options)
     {
         var result = new Dictionary<string, object?>();
         
         foreach (var entryProperty in entry.Properties)
         {
-            // Ignore (foreign) keys 
-            if (entryProperty.Metadata.IsKey() || entryProperty.Metadata.IsForeignKey())
+            // Ignore (foreign) keys if configured
+            if ((options.OmitPrimaryKeys && entryProperty.Metadata.IsKey()) 
+                || (options.OmitForeignKeys && entryProperty.Metadata.IsForeignKey()))
             {
                 continue;
             }
@@ -26,23 +27,24 @@ internal static class EntityEntryExtensions
             result[entryProperty.Metadata.Name] = entryProperty.CurrentValue;
         }
 
-        return JsonSerializer.Serialize(result, serializerOptions);
+        return JsonSerializer.Serialize(result, options.JsonSerializerOptions);
     }
     
     /// <summary>
     /// Get the old state. 
     /// </summary>
     /// <param name="entry">The entry.</param>
-    /// <param name="serializerOptions">The <see cref="JsonSerializerOptions"/>.</param>
+    /// <param name="options">The <see cref="ChangeEventOptions"/>.</param>
     /// <returns>A string representing the old state in JSON format.</returns>
-    public static string GetOldState(this EntityEntry entry, JsonSerializerOptions serializerOptions)
+    public static string GetOldState(this EntityEntry entry, ChangeEventOptions options)
     {
         var result = new Dictionary<string, object?>();
         
         foreach (var entryProperty in entry.Properties)
         {
-            // Ignore (foreign) keys 
-            if (entryProperty.Metadata.IsKey() || entryProperty.Metadata.IsForeignKey())
+            // Ignore (foreign) keys if configured
+            if ((options.OmitPrimaryKeys && entryProperty.Metadata.IsKey()) 
+                || (options.OmitForeignKeys && entryProperty.Metadata.IsForeignKey()))
             {
                 continue;
             }
@@ -50,7 +52,7 @@ internal static class EntityEntryExtensions
             result[entryProperty.Metadata.Name] = entryProperty.OriginalValue;
         }
 
-        return JsonSerializer.Serialize(result, serializerOptions);
+        return JsonSerializer.Serialize(result, options.JsonSerializerOptions);
     }
 
     /// <summary>

@@ -15,8 +15,11 @@ public class SampleContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         // Add the change event interceptor, customise the json serializer.
-        optionsBuilder.UseChangeEvents(options => 
-            options.JsonSerializerOptions.Converters.Insert(0, new JsonStringEnumConverter()));
+        optionsBuilder.UseChangeEvents(options =>
+        {
+            options.JsonSerializerOptions.Converters.Insert(0, new JsonStringEnumConverter());
+            
+        });
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
