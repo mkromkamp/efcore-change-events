@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace EntityFrameworkCore.ChangeEvents;
 
@@ -10,8 +11,9 @@ namespace EntityFrameworkCore.ChangeEvents;
 internal class ChangeEventInterceptor : SaveChangesInterceptor
 {
     private readonly ChangeEventOptions _options;
-    private List<ChangeEvent> _changeEvents = new();
     private bool _handledFailures = false;
+
+    private List<(EntityState State, EntityEntry Entity, ChangeEvent Event)> _entries = new();
 
     public ChangeEventInterceptor(ChangeEventOptions options)
     {
@@ -31,9 +33,8 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
     {
         if (eventData.Context is null)
             return result;
-        
-        _changeEvents = CreateEvents(eventData.Context.ChangeTracker);
-        await eventData.Context.AddRangeAsync(_changeEvents, cancellationToken);
+
+        TrackEvents(eventData.Context.ChangeTracker);
 
         return result;
     }
@@ -49,16 +50,12 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
     public override async ValueTask<int> SavedChangesAsync(SaveChangesCompletedEventData eventData, int result,
         CancellationToken cancellationToken = new CancellationToken())
     {
-        if (eventData.Context is null || !_changeEvents.Any())
+        var changeEvents = FinishEvents();
+        
+        if (eventData.Context is null || !changeEvents.Any())
             return result;
-        
-        foreach (var changeEvent in _changeEvents)
-        {
-            changeEvent.Succeeded = true;
-            changeEvent.CompletedOn = DateTimeOffset.UtcNow;
-        }
-        
-        eventData.Context.AttachRange(_changeEvents);
+
+        eventData.Context.AttachRange(changeEvents);
         await eventData.Context.SaveChangesAsync(cancellationToken);
 
         return result;
@@ -75,7 +72,7 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
     public override async Task SaveChangesFailedAsync(DbContextErrorEventData eventData,
         CancellationToken cancellationToken = new CancellationToken())
     {
-        if (eventData.Context is null || !_changeEvents.Any() || _handledFailures)
+        if (eventData.Context is null || !_entries.Any() || _handledFailures)
             return;
         
         // Detach entities to avoid endless looping on save failure
@@ -84,14 +81,10 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
         {
             entityEntry.State = EntityState.Detached;
         }
+
+        var changeEvents = FinishEvents(succeeded: false);
         
-        foreach (var changeEvent in _changeEvents)
-        {
-            changeEvent.Succeeded = false;
-            changeEvent.CompletedOn = DateTimeOffset.UtcNow;
-        }
-        
-        eventData.Context.AttachRange(_changeEvents);
+        eventData.Context.AttachRange(changeEvents);
         _handledFailures = true;
         await eventData.Context.SaveChangesAsync(cancellationToken);
         
@@ -99,30 +92,53 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
         eventData.Context.AttachRange(entries.Select(e => e.Entity));
     }
 
-    private List<ChangeEvent> CreateEvents(ChangeTracker changeTracker)
+    private void TrackEvents(ChangeTracker changeTracker)
     {
-        var changeEvents = new List<ChangeEvent>();
-
         // Scan for changes on the context, context null checks are done on public methods
         changeTracker.DetectChanges();
-
+        
         foreach (var entityEntry in changeTracker.Entries())
         {
             if (entityEntry.Metadata.ClrType.BaseType == typeof(ChangeEventBase))
                 continue;
-            
-            var changeEvent = entityEntry.State switch
+
+            (EntityState State, EntityEntry? Entity, ChangeEvent? Event) entry = entityEntry.State switch
             {
-                EntityState.Added => CreateAddedEvent(entityEntry),
-                EntityState.Modified => CreateModifiedEvent(entityEntry),
-                EntityState.Deleted => CreateDeletedEvent(entityEntry),
-                _ => null
+                EntityState.Added => (entityEntry.State, entityEntry, CreateAddedEvent(entityEntry)),
+                EntityState.Modified => (entityEntry.State, entityEntry, CreateModifiedEvent(entityEntry)),
+                EntityState.Deleted => (entityEntry.State, entityEntry, CreateDeletedEvent(entityEntry)),
+                _ => (default, default, null)
             };
             
-            if (changeEvent is not null)
-                changeEvents.Add(changeEvent);
+            if (entry.Entity is null || entry.Event is null)
+                continue;
+            
+            _entries.Add(entry!);
+        }
+    }
+    
+    private List<ChangeEvent> FinishEvents(bool succeeded = true)
+    {
+        var changeEvents = new List<ChangeEvent>();
+
+        foreach (var entry in _entries)
+        {
+            switch (entry.State)
+            {
+                // For added events we can now get the state including generated columns including primary key(s)
+                case EntityState.Added:
+                    entry.Event.NewData = entry.Entity.GetNewState(_options);
+                    entry.Event.SourceRowId = entry.Entity.PrimaryKey();
+                    break;
+            }
+
+            entry.Event.Succeeded = succeeded;
+            entry.Event.CompletedOn = DateTimeOffset.UtcNow;
+            
+            changeEvents.Add(entry.Event);
         }
 
+        _entries.Clear();
         return changeEvents;
     }
 
@@ -130,14 +146,14 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
     {
         return new()
         {
-            ChangeType = entry.State.ToString(),
+            ChangeType = nameof(EntityState.Added),
             SourceTableName = entry.TableName(),
             SourceRowId = entry.PrimaryKey(),
             OldData = null,
             NewData = entry.GetNewState(_options),
-            Succeeded = false,
+            Succeeded = true,
             StartedOn = DateTimeOffset.UtcNow,
-            CompletedOn = null,
+            CompletedOn = DateTimeOffset.UtcNow,
             IsPublished = false,
             PublishedOn = null
         };
@@ -147,14 +163,14 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
     {
         return new()
         {
-            ChangeType = entry.State.ToString(),
+            ChangeType = nameof(EntityState.Modified),
             SourceTableName = entry.TableName(),
             SourceRowId = entry.PrimaryKey(),
             OldData = entry.GetOldState(_options),
             NewData = entry.GetNewState(_options),
-            Succeeded = false,
+            Succeeded = true,
             StartedOn = DateTimeOffset.UtcNow,
-            CompletedOn = null,
+            CompletedOn = DateTimeOffset.UtcNow,
             IsPublished = false,
             PublishedOn = null
         };
@@ -164,14 +180,14 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
     {
         return new()
         {
-            ChangeType = entry.State.ToString(),
+            ChangeType = nameof(EntityState.Deleted),
             SourceTableName = entry.TableName(),
             SourceRowId = entry.PrimaryKey(),
             OldData = entry.GetOldState(_options),
             NewData = null,
-            Succeeded = false,
+            Succeeded = true,
             StartedOn = DateTimeOffset.UtcNow,
-            CompletedOn = null,
+            CompletedOn = DateTimeOffset.UtcNow,
             IsPublished = false,
             PublishedOn = null
         };
