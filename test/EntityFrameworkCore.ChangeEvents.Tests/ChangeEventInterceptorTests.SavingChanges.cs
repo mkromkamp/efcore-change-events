@@ -78,7 +78,7 @@ public partial class ChangeEventInterceptorTests
         _context.SaveChanges();
 
         // Then
-        _context.ChangeTracker.Entries<ChangeEvent>().First().Entity.ChangeType.ShouldBe(EntityState.Modified.ToString());
+        _context.ChangeTracker.Entries<ChangeEvent>().Last().Entity.ChangeType.ShouldBe(EntityState.Modified.ToString());
     }
     
     [Fact]
@@ -158,7 +158,7 @@ public partial class ChangeEventInterceptorTests
         _context.SaveChanges();
 
         // Then
-        _context.ChangeTracker.Entries<ChangeEvent>().First().Entity.OldData.ShouldNotBeNull();
+        _context.ChangeTracker.Entries<ChangeEvent>().Last().Entity.OldData.ShouldNotBeNull();
     }
     
     [Fact]
