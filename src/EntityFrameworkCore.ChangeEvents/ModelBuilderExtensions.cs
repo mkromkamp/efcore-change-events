@@ -14,6 +14,10 @@ public static class ModelBuilderExtensions
             
             // Set the key after the entity type builder. This avoids overwriting of the key.
             e.HasKey(ce => ce.Id);
+            
+            // Composite index over published fields. Mainly to support log tailing by quering the combination them.
+            // Composite indexes speed up queries of a combination of the keys and the first key, for this reason we index PublishedOn first
+            e.HasKey(ce => new { ce.PublishedOn, ce.IsPublished });
         });
         
         return builder;
