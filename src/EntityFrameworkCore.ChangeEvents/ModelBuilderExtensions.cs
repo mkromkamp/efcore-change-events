@@ -16,7 +16,7 @@ public static class ModelBuilderExtensions
             e.HasKey(ce => ce.Id);
             
             // Index over published fields. Mainly to support log tailing.
-            e.HasKey(ce => ce.IsPublished);
+            e.HasIndex(ce => ce.IsPublished);
         });
         
         return builder;
