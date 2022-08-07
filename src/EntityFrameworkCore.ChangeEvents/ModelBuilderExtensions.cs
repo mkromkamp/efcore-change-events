@@ -14,6 +14,9 @@ public static class ModelBuilderExtensions
             
             // Set the key after the entity type builder. This avoids overwriting of the key.
             e.HasKey(ce => ce.Id);
+            
+            // Index over published fields. Mainly to support log tailing.
+            e.HasIndex(ce => ce.IsPublished);
         });
         
         return builder;
