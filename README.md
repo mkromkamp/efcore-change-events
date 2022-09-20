@@ -60,7 +60,7 @@ public class SampleContext : DbContext
 ```csharp
 protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 {
-    // Add the change event interceptor, customize JSON serializer
+    // Add the change event interceptor, exclude TypeToExclude from change tracking
     optionsBuilder.UseChangeEvents(options => 
         options.ExclusionFilter = type => type == typeof(TypeToExlude));
 }
