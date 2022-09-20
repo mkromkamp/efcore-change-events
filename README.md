@@ -20,11 +20,11 @@ Install with dotnet cli
 
 Add package
 ```bash
-  dotnet add package EntityFrameworkCore.ChangeEvents
+dotnet add package EntityFrameworkCore.ChangeEvents
 ```
 
 After setup (see below), remember to run and apply migrations
-``` bash
+```bash
 dotnet ef migrations add ChangeEvents
 dotnet ef database update
 ```
@@ -53,6 +53,16 @@ public class SampleContext : DbContext
         // Add change event model.
         modelBuilder.AddChangeEvents<ChangeEvent>();
     }
+}
+```
+
+### Exclude types from being tracked
+```csharp
+protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+{
+    // Add the change event interceptor, customize JSON serializer
+    optionsBuilder.UseChangeEvents(options => 
+        options.ExclusionFilter = type => type == typeof(TypeToExlude));
 }
 ```
 

@@ -4,8 +4,13 @@ namespace EntityFrameworkCore.ChangeEvents.Tests;
 
 public class TestContext : DbContext
 {
-    public TestContext(DbContextOptions<TestContext> options) 
-        : base(options) { }
+    private readonly ChangeEventOptions _options;
+    
+    public TestContext(DbContextOptions<TestContext> options, ChangeEventOptions interceptorOptions) 
+        : base(options)
+    {
+        _options = interceptorOptions;
+    }
 
     public DbSet<TestEntity> Entities { get; set; }
     
@@ -16,7 +21,7 @@ public class TestContext : DbContext
     {
         // optionsBuilder.UseSqlite("Filename=:memory:");
         optionsBuilder.UseInMemoryDatabase("TestDb");
-        optionsBuilder.UseChangeEvents();
+        optionsBuilder.UseChangeEvents(_options);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

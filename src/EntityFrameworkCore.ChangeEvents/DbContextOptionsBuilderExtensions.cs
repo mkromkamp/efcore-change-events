@@ -13,4 +13,13 @@ public static class DbContextOptionsBuilderExtensions
 
         return builder;
     }
+    
+    public static DbContextOptionsBuilder UseChangeEvents(this DbContextOptionsBuilder builder, ChangeEventOptions options)
+    {
+        if (options is null) throw new ArgumentNullException(nameof(options));
+        
+        builder.AddInterceptors(new ChangeEventInterceptor(options));
+
+        return builder;
+    }
 }

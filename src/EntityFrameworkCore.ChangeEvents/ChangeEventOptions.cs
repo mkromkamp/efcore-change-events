@@ -5,6 +5,12 @@ namespace EntityFrameworkCore.ChangeEvents;
 public class ChangeEventOptions
 {
     /// <summary>
+    /// Gets or sets the exclusion filter.
+    /// Can be used to exclude certain types from being tracked.
+    /// </summary>
+    public Func<Type, bool> ExclusionFilter { get; set; } = _ => false; 
+
+    /// <summary>
     /// Gets or set the <see cref="JsonSerializer"/> used to serialize change data.
     /// </summary>
     public JsonSerializerOptions JsonSerializerOptions { get; set; } = new();

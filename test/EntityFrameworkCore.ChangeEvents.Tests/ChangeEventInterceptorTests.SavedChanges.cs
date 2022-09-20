@@ -39,7 +39,7 @@ public partial class ChangeEventInterceptorTests
     [Fact]
     public void GivenAdded_WhenSavedChanges_ShouldSetCompletedOn()
     {
-        using var context = new TestContext(new());
+        using var context = new TestContext(new(), new());
         
         // Given
         var testEntity = new TestEntity() { Name = "Test User", IsActive = true };

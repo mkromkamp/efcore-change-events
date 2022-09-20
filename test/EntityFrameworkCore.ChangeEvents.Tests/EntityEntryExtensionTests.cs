@@ -11,7 +11,7 @@ public class EntityEntryExtensionTests
 
     public EntityEntryExtensionTests()
     {
-        _context = new TestContext(new());
+        _context = new TestContext(new(), new());
         _context.Database.EnsureCreated();
 
         _options = new();
