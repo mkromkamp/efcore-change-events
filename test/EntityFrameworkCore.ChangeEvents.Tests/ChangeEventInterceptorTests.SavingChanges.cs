@@ -223,4 +223,19 @@ public partial class ChangeEventInterceptorTests
         // Then
         _context.ChangeTracker.Entries<ChangeEvent>().First().Entity.NewData.ShouldBeNull();
     }
+    
+    [Fact]
+    public void GivenExclusionFilter_WhenSavingChanges_ShouldNotTrackType()
+    {
+        // Given
+        TestContext context = new(new(), new() { ExclusionFilter = type => type == typeof(TestEntity)});
+        TestEntity testEntity = new() { Name = "Test User", IsActive = true };
+        
+        // When
+        context.Entities.Add(testEntity);
+        context.SaveChanges();
+
+        // Then
+        _context.ChangeTracker.Entries<ChangeEvent>().ShouldBeEmpty();
+    }
 }

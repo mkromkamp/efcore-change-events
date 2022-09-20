@@ -101,6 +101,9 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
         {
             if (entityEntry.Metadata.ClrType.BaseType == typeof(ChangeEventBase))
                 continue;
+            
+            if (_options.ExclusionFilter(entityEntry.Entity.GetType()))
+                continue;
 
             (EntityState State, EntityEntry? Entity, ChangeEvent? Event) entry = entityEntry.State switch
             {
