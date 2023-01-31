@@ -94,9 +94,13 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
 
     private void TrackEvents(ChangeTracker changeTracker)
     {
+        // Clear out any entries stored in the context previously
+        _entries.Clear();
+        _handledFailures = false;
+        
         // Scan for changes on the context, context null checks are done on public methods
         changeTracker.DetectChanges();
-        
+
         foreach (var entityEntry in changeTracker.Entries())
         {
             if (entityEntry.Metadata.ClrType.BaseType == typeof(ChangeEventBase))
