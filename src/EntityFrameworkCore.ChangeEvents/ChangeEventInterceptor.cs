@@ -61,37 +61,6 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
         return result;
     }
 
-    public override void SaveChangesFailed(DbContextErrorEventData eventData)
-    {
-        SaveChangesFailedAsync(eventData, CancellationToken.None)
-            .ConfigureAwait(false)
-            .GetAwaiter()
-            .GetResult();
-    }
-
-    public override async Task SaveChangesFailedAsync(DbContextErrorEventData eventData,
-        CancellationToken cancellationToken = new CancellationToken())
-    {
-        if (eventData.Context is null || !_entries.Any() || _handledFailures)
-            return;
-        
-        // Detach entities to avoid endless looping on save failure
-        var entries = eventData.Context.ChangeTracker.Entries().ToList();
-        foreach (var entityEntry in eventData.Context.ChangeTracker.Entries())
-        {
-            entityEntry.State = EntityState.Detached;
-        }
-
-        var changeEvents = FinishEvents(succeeded: false);
-        
-        eventData.Context.AttachRange(changeEvents);
-        _handledFailures = true;
-        await eventData.Context.SaveChangesAsync(cancellationToken);
-        
-        // Re-attach entities to the context
-        eventData.Context.AttachRange(entries.Select(e => e.Entity));
-    }
-
     private void TrackEvents(ChangeTracker changeTracker)
     {
         // Clear out any entries stored in the context previously
