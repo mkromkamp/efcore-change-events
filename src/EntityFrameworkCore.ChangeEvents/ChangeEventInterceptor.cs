@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace EntityFrameworkCore.ChangeEvents;
 
@@ -11,7 +10,6 @@ namespace EntityFrameworkCore.ChangeEvents;
 internal class ChangeEventInterceptor : SaveChangesInterceptor
 {
     private readonly ChangeEventOptions _options;
-    private bool _handledFailures = false;
 
     private List<(EntityState State, EntityEntry Entity, ChangeEvent Event)> _entries = new();
 
@@ -65,7 +63,6 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
     {
         // Clear out any entries stored in the context previously
         _entries.Clear();
-        _handledFailures = false;
         
         // Scan for changes on the context, context null checks are done on public methods
         changeTracker.DetectChanges();
