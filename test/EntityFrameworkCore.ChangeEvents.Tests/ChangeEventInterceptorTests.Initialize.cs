@@ -7,7 +7,7 @@ public partial class ChangeEventInterceptorTests
 
     public ChangeEventInterceptorTests()
     {
-        _interceptor = new ChangeEventInterceptor(new ChangeEventOptions());
+        _interceptor = new ChangeEventInterceptor(new() {PerformPostChangeUpdates = true});
         _context = new TestContext(new(), new());
         _context.Database.EnsureCreated();
     }

@@ -24,4 +24,12 @@ public class ChangeEventOptions
     /// Gets or sets if foreign keys should be omitted from change events.
     /// </summary>
     public bool OmitForeignKeys { get; set; } = false;
+
+    /// <summary>
+    /// Perform post change updates.
+    /// </summary>
+    /// <remarks>
+    /// When enabled database generated identifiers and data will be added to change events.
+    /// </remarks>
+    public bool PerformPostChangeUpdates { get; set; } = false;
 }
