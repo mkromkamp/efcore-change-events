@@ -34,6 +34,12 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
 
         TrackEvents(eventData.Context.ChangeTracker);
 
+        if (!_options.PerformPostChangeUpdates)
+        {
+            var changeEvents = FinishEvents();
+            eventData.Context.AttachRange(changeEvents);
+        }
+
         return result;
     }
 

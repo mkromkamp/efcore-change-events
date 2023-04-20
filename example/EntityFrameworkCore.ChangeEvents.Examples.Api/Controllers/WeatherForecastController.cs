@@ -35,7 +35,7 @@ public class WeatherForecastController : ControllerBase
         await _sampleContext.WeatherForecasts.AddAsync(weatherForecast, cancellationToken);
         await _sampleContext.SaveChangesAsync(cancellationToken);
 
-        return Accepted();
+        return Accepted(new Hashids("WeatherForecast", 6).Encode(weatherForecast.Id!.Value));
     }
 
     [HttpGet("{entryId}")]

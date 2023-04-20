@@ -18,7 +18,6 @@ public class SampleContext : DbContext
         optionsBuilder.UseChangeEvents(options =>
         {
             options.JsonSerializerOptions.Converters.Insert(0, new JsonStringEnumConverter());
-            
         });
     }
 
