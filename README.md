@@ -1,6 +1,6 @@
 # EntityFrameworkCore.ChangeEvents
 
-[![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/mkromkamp/efcore-change-events/blob/master/LICENSEs)
+[![MIT License](https://img.shields.io/github/license/mkromkamp/efcore-change-events)](https://github.com/mkromkamp/efcore-change-events/blob/master/LICENSE)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/mkromkamp/efcore-change-events?sort=semver)
 ![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/mkromkamp/efcore-change-events/.NET/main)
 ![GitHub issues](https://img.shields.io/github/issues/mkromkamp/efcore-change-events)
