@@ -11,8 +11,6 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
 {
     private readonly ChangeEventOptions _options;
 
-    private List<(EntityState State, EntityEntry Entity, ChangeEvent Event)> _entries = new();
-
     public ChangeEventInterceptor(ChangeEventOptions options)
     {
         _options = options;
@@ -26,21 +24,19 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
             .GetResult();
     }
     
-    public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result,
+    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result,
         CancellationToken cancellationToken = new CancellationToken())
     {
         if (eventData.Context is null)
-            return result;
-
-        TrackEvents(eventData.Context.ChangeTracker);
+            return new ValueTask<InterceptionResult<int>>(result);
 
         if (!_options.PerformPostChangeUpdates)
         {
-            var changeEvents = FinishEvents();
+            var changeEvents = FinishEvents(eventData.Context.ChangeTracker);
             eventData.Context.AttachRange(changeEvents);
         }
 
-        return result;
+        return new ValueTask<InterceptionResult<int>>(result);
     }
 
     public override int SavedChanges(SaveChangesCompletedEventData eventData, int result)
@@ -54,9 +50,12 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
     public override async ValueTask<int> SavedChangesAsync(SaveChangesCompletedEventData eventData, int result,
         CancellationToken cancellationToken = new CancellationToken())
     {
-        var changeEvents = FinishEvents();
-        
-        if (eventData.Context is null || !changeEvents.Any())
+        if (eventData.Context is null)
+            return result;
+
+        var changeEvents = FinishEvents(eventData.Context.ChangeTracker);
+
+        if (!changeEvents.Any())
             return result;
 
         eventData.Context.AttachRange(changeEvents);
@@ -65,15 +64,11 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
         return result;
     }
 
-    private void TrackEvents(ChangeTracker changeTracker)
+    private IEnumerable<(EntityState State, EntityEntry Entity, ChangeEvent Event)> TrackEvents(ChangeTracker changeTracker)
     {
-        // Clear out any entries stored in the context previously
-        _entries.Clear();
-        
         // Scan for changes on the context, context null checks are done on public methods
-        changeTracker.DetectChanges();
-
-        foreach (var entityEntry in changeTracker.Entries())
+        EntityEntry[] changes = changeTracker.Entries().ToArray();
+        foreach (var entityEntry in changes)
         {
             if (entityEntry.Metadata.ClrType.BaseType == typeof(ChangeEventBase))
                 continue;
@@ -91,16 +86,17 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
             
             if (entry.Entity is null || entry.Event is null)
                 continue;
-            
-            _entries.Add(entry!);
+
+            yield return (entry.State, entry.Entity, entry.Event);
         }
     }
     
-    private List<ChangeEvent> FinishEvents(bool succeeded = true)
+    private List<ChangeEvent> FinishEvents(ChangeTracker changeTracker)
     {
-        var changeEvents = new List<ChangeEvent>();
+        var events = TrackEvents(changeTracker).ToArray();
+        var changeEvents = new List<ChangeEvent>(events.Length);
 
-        foreach (var entry in _entries)
+        foreach (var entry in events)
         {
             switch (entry.State)
             {
@@ -111,13 +107,12 @@ internal class ChangeEventInterceptor : SaveChangesInterceptor
                     break;
             }
 
-            entry.Event.Succeeded = succeeded;
+            entry.Event.Succeeded = true;
             entry.Event.CompletedOn = DateTimeOffset.UtcNow;
-            
+
             changeEvents.Add(entry.Event);
         }
 
-        _entries.Clear();
         return changeEvents;
     }
 
