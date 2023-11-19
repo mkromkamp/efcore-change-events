@@ -2,8 +2,10 @@
 
 [![MIT License](https://img.shields.io/github/license/mkromkamp/efcore-change-events)](https://github.com/mkromkamp/efcore-change-events/blob/master/LICENSE)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/mkromkamp/efcore-change-events?sort=semver)
-![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/mkromkamp/efcore-change-events/.NET/main)
 ![GitHub issues](https://img.shields.io/github/issues/mkromkamp/efcore-change-events)
+![GitHub Workflow Status (branch)](https://github.com/mkromkamp/efcore-change-events/actions/workflows/build.yml/badge.svg)
+![GitHub Workflow Status (branch)](https://github.com/mkromkamp/efcore-change-events/actions/workflows/codeql.yml/badge.svg)
+![GitHub Workflow Status (branch)](https://github.com/mkromkamp/efcore-change-events/actions/workflows/snyk.yml/badge.svg)
 
 Automatic change events for entity framework core.
 
