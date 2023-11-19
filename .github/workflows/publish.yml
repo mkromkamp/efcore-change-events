@@ -23,7 +23,7 @@ jobs:
 
       # Publish
       - name: Create nupkg
-        run: dotnet pack --include-symbols -c Release -o ./pkg -p:PackageVersion=${{ github.event.release.tag_name }}
+        run: dotnet pack --include-symbols -c Release -o ./pkg -p:PackageReadmeFile=./README.md -p:PackageVersion=${{ github.event.release.tag_name }}
 
       - name: NuGetPush
         run: dotnet nuget push "pkg/*.nupkg" -k ${{secrets.NUGET_PUBLISH_KEY}} -s https://api.nuget.org/v3/index.json --skip-duplicate
