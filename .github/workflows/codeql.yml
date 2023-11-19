@@ -35,6 +35,9 @@ jobs:
       with:
         languages: ${{ matrix.language }}
         queries: security-extended,security-and-quality
+        config: |
+          paths:
+            - src
 
 
     # Autobuild attempts to build any compiled languages (C/C++, C#, Go, Java, or Swift).
